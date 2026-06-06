@@ -1,7 +1,9 @@
 const { Kafka } = require("kafkajs");
 
+const consumerName = process.argv[2] || "consumer-1";
+
 const kafka = new Kafka({
-  clientId: "payment-service",
+  clientId: consumerName,
   brokers: ["localhost:9092"],
 });
 
@@ -9,7 +11,7 @@ const consumer = kafka.consumer({
   groupId: "payment-group",
 });
 
-async function consumeMessages() {
+async function main() {
   await consumer.connect();
 
   await consumer.subscribe({
@@ -18,15 +20,12 @@ async function consumeMessages() {
   });
 
   await consumer.run({
-    eachMessage: async ({ topic, partition, message }) => {
-      console.log({
-        partition,
-        offset: message.offset,
-        key: message.key.toString(),
-        value: message.value.toString(),
-      });
+    eachMessage: async ({ partition, message }) => {
+      console.log(
+        `[${consumerName}] partition=${partition}, offset=${message.offset}, key=${message.key?.toString()}, value=${message.value?.toString()}`,
+      );
     },
   });
 }
 
-consumeMessages();
+main().catch(console.error);

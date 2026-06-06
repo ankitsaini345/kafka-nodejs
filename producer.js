@@ -7,19 +7,19 @@ const kafka = new Kafka({
 
 const producer = kafka.producer();
 
-async function sendMessage() {
+async function main() {
   await producer.connect();
 
-  for (let i = 1; i <= 5; i++) {
+  for (let i = 1; i <= 30; i++) {
     const order = {
-      orderId: i,
-      customerId: `customer-${i}`,
+      orderId: `order-${i}`,
+      customerId: `customer-${i % 5}`,
       amount: i * 100,
+      createdAt: new Date().toISOString(),
     };
 
     await producer.send({
       topic: "orders",
-
       messages: [
         {
           key: order.customerId,
@@ -34,4 +34,4 @@ async function sendMessage() {
   await producer.disconnect();
 }
 
-sendMessage();
+main().catch(console.error);
